@@ -31,8 +31,8 @@ SOFTWARE.
 enum layers {
     _BL,
     _GM,
-    _GM13,
-    _GM14,
+    _GM23,
+    _GM24,
     _FN
 };
 
@@ -55,7 +55,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------'
  */
   [_BL] = LAYOUT(
-    OSL(_GM), OSL(_GM13), OSL(_GM14), LT(_FN, KC_PMNS),
+    OSL(_GM), OSL(_GM23), OSL(_GM24), LT(_FN, KC_PMNS),
     KC_P7,    KC_P8,    KC_P9,
     KC_P4,    KC_P5,    KC_P6,    KC_PPLS,
     KC_P1,    KC_P2,    KC_P3,
@@ -76,25 +76,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-------------------'
  */
    [_GM] = LAYOUT(
-     KC_TRNS, XXXXXXX, XXXXXXX,  XXXXXXX,
+     TG(_BL), XXXXXXX, XXXXXXX,  XXXXXXX,
      KC_F13,  KC_F14,  KC_F15,
      KC_F16,  KC_F17,  KC_F18,   XXXXXXX,
      KC_F19,  KC_F20,  KC_F21,
      KC_F22,  KC_F23,  KC_F24,   XXXXXXX
    ),
-   [_GM13] = LAYOUT(
-     KC_TRNS, XXXXXXX, XXXXXXX,  XXXXXXX,
+   [_GM23] = LAYOUT(
+     TG(_BL), XXXXXXX, XXXXXXX,  XXXXXXX,
      KC_F13,  KC_F14,  KC_F15,
      KC_F16,  KC_F17,  KC_F18,   XXXXXXX,
      KC_F19,  KC_F20,  KC_F21,
-     KC_F22,  KC_F23,  KC_F24,   XXXXXXX
+     KC_F22,  XXXXXXX, XXXXXXX,  XXXXXXX
    ),
-   [_GM14] = LAYOUT(
-     KC_TRNS, XXXXXXX, XXXXXXX,  XXXXXXX,
+   [_GM24] = LAYOUT(
+     TG(_BL), XXXXXXX, XXXXXXX,  XXXXXXX,
      KC_F13,  KC_F14,  KC_F15,
      KC_F16,  KC_F17,  KC_F18,   XXXXXXX,
      KC_F19,  KC_F20,  KC_F21,
-     KC_F22,  KC_F23,  KC_F24,   XXXXXXX
+     KC_F22,  KC_F23, XXXXXXX,  XXXXXXX
    ),
 
 /* Keymap _FN: RGB Function Layer
@@ -119,24 +119,27 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    ),
 };
 
-void process_GM(uint16_t keycode, uint16_t mod, keyrecord_t *record) {
-    if (record->event.pressed) {
-        register_code(mod);
-        register_code(keycode);
-    } else {
-        unregister_code(keycode);
-        unregister_code(mod);
+static bool mod_tracker;
+static uint16_t mod_keycode;
+
+void add_mod(uint16_t keycode, keyrecord_t *record) {
+    if (!record->event.pressed){
+        return;
     }
+
+    mod_tracker = true;
+    mod_keycode = keycode;
+    register_code(keycode);
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (get_highest_layer(layer_state)) {
-      case _GM13:
-          process_GM(keycode, KC_F13, record);
-          return false;
-      case _GM14:
-          process_GM(keycode, KC_F14, record);
-          return false;
+      case _GM23:
+          add_mod(KC_F23, record);
+          break;
+      case _GM24:
+          add_mod(KC_F24, record);
+          break;
       default:
           switch (keycode) {
               case KC_DBL0:
@@ -147,9 +150,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                   }
               break;
           }
+          break;
   }
   return true;
 };
+
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (!record->event.pressed) {
+        if (mod_tracker) {
+            unregister_code(mod_keycode);
+            mod_tracker = false;
+        }
+    }
+}
 
 #ifdef OLED_ENABLE
 
