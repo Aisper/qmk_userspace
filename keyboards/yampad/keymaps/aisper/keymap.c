@@ -119,7 +119,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    ),
 };
 
-void process_GM(uint16_t keycode, uint16_t mod) {
+void process_GM(uint16_t keycode, uint16_t mod, keyrecord_t *record) {
     if (record->event.pressed) {
         register_code(mod);
         register_code(keycode);
@@ -132,9 +132,11 @@ void process_GM(uint16_t keycode, uint16_t mod) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (get_highest_layer(layer_state)) {
       case _GM13:
-          process_GM(keycode, KC_F13);
+          process_GM(keycode, KC_F13, record);
+          return false;
       case _GM14:
-          process_GM(keycode, KC_F14);
+          process_GM(keycode, KC_F14, record);
+          return false;
       default:
           switch (keycode) {
               case KC_DBL0:
