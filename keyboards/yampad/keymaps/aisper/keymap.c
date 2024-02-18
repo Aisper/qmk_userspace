@@ -30,8 +30,8 @@ SOFTWARE.
 // entirely and just use numbers.
 enum layers {
     _BL,
-    _GM,
     HELL,
+    _GM,
     _FN,
 };
 
@@ -41,10 +41,32 @@ enum custom_keycodes {
     RESUPPLY,
 };
 
+void dance_enter_hell(tap_dance_state_t *state, void *user_data) {
+    if (state->count >= 2) {
+        layer_on(HELL);
+    }
+    else {
+        tap_code(KC_PENT);
+    }
+
+    reset_tap_dance(state);
+};
+
+// Tap Dance declarations
+enum {
+    TD_ENTER_HELL,
+};
+
+// Tap Dance definitions
+tap_dance_action_t tap_dance_actions[] = {
+    // Tap once for Enter, twice for HELL layer
+    [TD_ENTER_HELL] = ACTION_TAP_DANCE_FN(dance_enter_hell),
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* Keymap _BL: (Base Layer) Default Layer
  * ,-----------------------.
- * | GM  |CT+GM|ST+GM|-/FN |
+ * | GM  |CT+GM|AL+GM|-/FN |
  * |-----|-----|-----|-----|
  * |  7  |  8  |  9  |     |
  * |-----|-----|-----|  +  |
@@ -56,11 +78,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------'
  */
   [_BL] = LAYOUT(
-    MO(_GM),  LM(_GM, MOD_RCTL),  LM(_GM, MOD_RALT),   LT(_FN, KC_PMNS),
+    MO(_GM),  LM(_GM, MOD_LCTL),  LM(_GM, MOD_LALT),   LT(_FN, KC_PMNS),
     KC_P7,    KC_P8,              KC_P9,
     KC_P4,    KC_P5,              KC_P6,               KC_PPLS,
     KC_P1,    KC_P2,              KC_P3,
-    KC_P0,    KC_DBL0,            KC_PDOT,             KC_PENT
+    KC_P0,    KC_DBL0,            KC_PDOT,             TD(TD_ENTER_HELL)
   ),
 
 /* Keymap _GM: Game layer
@@ -81,14 +103,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_F13,  KC_F14,   KC_F15,
       KC_F16,  KC_F17,   KC_F18,   XXXXXXX,
       KC_F19,  KC_F20,   KC_F21,
-      KC_F22,  KC_F23,   KC_F24,   OSL(HELL)
+      KC_F22,  KC_F23,   KC_F24,   XXXXXXX
       ),
     [HELL] = LAYOUT(
-      REINFORCE, RESUPPLY,  XXXXXXX,   XXXXXXX,
-      XXXXXXX,   XXXXXXX,   XXXXXXX,
+      _______,   _______,   _______,   _______,
+      REINFORCE, RESUPPLY,  XXXXXXX,
       XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX,
       XXXXXXX,   XXXXXXX,   XXXXXXX,
-      XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX
+      XXXXXXX,   XXXXXXX,   XXXXXXX,   TG(HELL)
     ),
 
 /* Keymap _FN: RGB Function Layer
