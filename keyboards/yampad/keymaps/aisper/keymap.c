@@ -30,8 +30,8 @@ SOFTWARE.
 // entirely and just use numbers.
 enum layers {
     _BL,
-//    HELL,
     _GM,
+    HELL,
     _FN,
 };
 
@@ -76,20 +76,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |F22 |F23 |F24 |    |
  * `-------------------'
  */
-    // [HELL] = LAYOUT(
-    //   TO(_BL),    _______,  _______,   _______,
-    //   REINFORCE, RESUPPLY,  XXXXXXX,
-    //   XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX,
-    //   XXXXXXX,   XXXXXXX,   XXXXXXX,
-    //   XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX
-    // ),
     [_GM] = LAYOUT(
       _______, _______,  _______,  _______,
       KC_F13,  KC_F14,   KC_F15,
       KC_F16,  KC_F17,   KC_F18,   XXXXXXX,
       KC_F19,  KC_F20,   KC_F21,
-      KC_F22,  KC_F23,   KC_F24,   XXXXXXX
+      KC_F22,  KC_F23,   KC_F24,   OSL(HELL)
       ),
+    [HELL] = LAYOUT(
+      REINFORCE, RESUPPLY,  XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX
+    ),
 
 /* Keymap _FN: RGB Function Layer
  * ,-------------------.
@@ -160,9 +160,9 @@ bool oled_task_user(void) {
         case _FN:
             oled_write_ln_P(PSTR(" RGB"), false);
             break;
-        // case HELL:
-        //     oled_write_ln_P(PSTR("HELL!"), false);
-        //     break;
+        case HELL:
+            oled_write_ln_P(PSTR("HELL!"), false);
+            break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
             oled_write_ln_P(PSTR(" UND"), false);
