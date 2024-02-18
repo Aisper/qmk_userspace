@@ -31,11 +31,14 @@ SOFTWARE.
 enum layers {
     _BL,
     _GM,
-    _FN
+    HELL,
+    _FN,
 };
 
 enum custom_keycodes {
     KC_DBL0 = SAFE_RANGE,
+    REINFORCE,
+    RESUPPLY,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -73,13 +76,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |F22 |F23 |F24 |    |
  * `-------------------'
  */
-   [_GM] = LAYOUT(
-     TG(_GM), XXXXXXX, XXXXXXX,  XXXXXXX,
-     KC_F13,  KC_F14,  KC_F15,
-     KC_F16,  KC_F17,  KC_F18,   XXXXXXX,
-     KC_F19,  KC_F20,  KC_F21,
-     KC_F22,  KC_F23,  KC_F24,   XXXXXXX
-   ),
+    [_GM] = LAYOUT(
+      _______, _______,  _______,  _______,
+      KC_F13,  KC_F14,   KC_F15,
+      KC_F16,  KC_F17,   KC_F18,   XXXXXXX,
+      KC_F19,  KC_F20,   KC_F21,
+      KC_F22,  KC_F23,   KC_F24,   OSL(HELL)
+      ),
+    [HELL] = LAYOUT(
+      REINFORCE, RESUPPLY,  XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,
+      XXXXXXX,   XXXXXXX,   XXXXXXX,   XXXXXXX
+    ),
 
 /* Keymap _FN: RGB Function Layer
  * ,-------------------.
@@ -103,76 +113,89 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    ),
 };
 
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-    case KC_DBL0:
-      if (record->event.pressed) {
-        SEND_STRING("00");
-      } else {
-        // when keycode KC_DBL0 is released
-      }
-      break;
+void check_helldivers(uint16_t keycode, keyrecord_t* record){
+    if (!record->event.pressed) {
+        return;
+    }
 
-  }
-  return true;
+    switch (keycode) {
+        case REINFORCE:
+            SEND_STRING(SS_LALT(SS_TAP(X_UP) SS_DELAY(50) SS_TAP(X_DOWN) SS_DELAY(50) SS_TAP(X_RIGHT) SS_DELAY(50) SS_TAP(X_LEFT) SS_DELAY(50) SS_TAP(X_UP)));
+            break;
+        case RESUPPLY:
+            SEND_STRING(SS_LALT(SS_TAP(X_DOWN) SS_DELAY(50) SS_TAP(X_DOWN) SS_DELAY(50) SS_TAP(X_UP) SS_DELAY(50) SS_TAP(X_RIGHT)));
+            break;
+    }
+};
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case KC_DBL0:
+            if (record->event.pressed) {
+                SEND_STRING("00");
+            }
+            break;
+    }
+
+    check_helldivers(keycode, record);
+    return true;
 };
 
 #ifdef OLED_ENABLE
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
-    return OLED_ROTATION_270;  // flips the display 270 degrees
+    return OLED_ROTATION_270; // flips the display 270 degrees
 }
 
 bool oled_task_user(void) {
-  // Host Keyboard Layer Status
-  oled_write_P(PSTR("Layer"), false);
-  switch (get_highest_layer(layer_state)) {
-    case _BL:
-      oled_write_ln_P(PSTR(" BAS"), false);
-      break;
-    case _GM:
-      oled_write_ln_P(PSTR(" GAM"), false);
-      break;
-    case _FN:
-      oled_write_ln_P(PSTR(" RGB"), false);
-      break;
-    default:
-      // Or use the write_ln shortcut over adding '\n' to the end of your string
-      oled_write_ln_P(PSTR(" UND"), false);
-  }
+    // Host Keyboard Layer Status
+    oled_write_P(PSTR("Layer"), false);
+    switch (get_highest_layer(layer_state)) {
+        case _BL:
+            oled_write_ln_P(PSTR(" BAS"), false);
+            break;
+        case _GM:
+            oled_write_ln_P(PSTR(" GAM"), false);
+            break;
+        case _FN:
+            oled_write_ln_P(PSTR(" RGB"), false);
+            break;
+        case HELL:
+            oled_write_ln_P(PSTR("HELL!"), false);
+            break;
+        default:
+            // Or use the write_ln shortcut over adding '\n' to the end of your string
+            oled_write_ln_P(PSTR(" UND"), false);
+    }
 
-  // Host Keyboard LED Status
-  led_t led_state = host_keyboard_led_state();
-  oled_write_P(PSTR("-----"), false);
-  oled_write_P(PSTR("Stats"), false);
-  oled_write_P(led_state.num_lock ? PSTR("num:*") : PSTR("num:."), false);
-  oled_write_P(led_state.caps_lock ? PSTR("cap:*") : PSTR("cap:."), false);
-  oled_write_P(led_state.scroll_lock ? PSTR("scr:*") : PSTR("scr:."), false);
+    // Host Keyboard LED Status
+    led_t led_state = host_keyboard_led_state();
+    oled_write_P(PSTR("-----"), false);
+    oled_write_P(PSTR("Stats"), false);
+    oled_write_P(led_state.num_lock ? PSTR("num:*") : PSTR("num:."), false);
+    oled_write_P(led_state.caps_lock ? PSTR("cap:*") : PSTR("cap:."), false);
+    oled_write_P(led_state.scroll_lock ? PSTR("scr:*") : PSTR("scr:."), false);
 
-  // Host Keyboard RGB backlight status
+    // Host Keyboard RGB backlight status
 
     switch (get_highest_layer(layer_state)) {
         case _FN: {
             oled_write_P(PSTR("-----"), false);
             oled_write_P(PSTR("Light"), false);
             static char led_buf[30];
-            snprintf(led_buf, sizeof(led_buf) - 1, "RGB:%cM: %2d\nh: %2ds: %2dv: %2d\n",
-                rgblight_is_enabled() ? '*' : '.', (uint8_t)rgblight_get_mode(),
-                (uint8_t)(rgblight_get_hue() / RGBLIGHT_HUE_STEP),
-                (uint8_t)(rgblight_get_sat() / RGBLIGHT_SAT_STEP),
-                (uint8_t)(rgblight_get_val() / RGBLIGHT_VAL_STEP));
+            snprintf(led_buf, sizeof(led_buf) - 1, "RGB:%cM: %2d\nh: %2ds: %2dv: %2d\n", rgblight_is_enabled() ? '*' : '.', (uint8_t)rgblight_get_mode(), (uint8_t)(rgblight_get_hue() / RGBLIGHT_HUE_STEP), (uint8_t)(rgblight_get_sat() / RGBLIGHT_SAT_STEP), (uint8_t)(rgblight_get_val() / RGBLIGHT_VAL_STEP));
             oled_write(led_buf, false);
             break;
         }
         default:
-      oled_write_ln_P(PSTR(""), false);
-      oled_write_ln_P(PSTR(""), false);
-      oled_write_ln_P(PSTR(""), false);
-      oled_write_ln_P(PSTR(""), false);
-      oled_write_ln_P(PSTR(""), false);
-      oled_write_ln_P(PSTR(""), false);
-      oled_write_ln_P(PSTR(""), false);
-      oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln_P(PSTR(""), false);
             break;
     }
 
